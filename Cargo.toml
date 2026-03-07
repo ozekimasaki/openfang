@@ -137,6 +137,9 @@ imap = "2"
 native-tls = "0.2"
 mailparse = "0.15"
 
+# Vendored OpenSSL (static link for cross-compilation)
+openssl = { version = "0.10", features = ["vendored"] }
+
 # Testing
 tokio-test = "0.4"
 tempfile = "3"
