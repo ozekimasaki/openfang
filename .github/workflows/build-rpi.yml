@@ -1,0 +1,46 @@
+name: Build for Raspberry Pi (aarch64)
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-aarch64:
+    name: CLI / aarch64-unknown-linux-gnu
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Install build deps
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Install cross
+        run: cargo install cross --locked
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: cli-aarch64-unknown-linux-gnu
+
+      - name: Build CLI with cross
+        run: cross build --release --target aarch64-unknown-linux-gnu --bin openfang
+
+      - name: Package binary
+        run: |
+          cd target/aarch64-unknown-linux-gnu/release
+          tar czf ../../../openfang-aarch64-unknown-linux-gnu.tar.gz openfang
+          cd ../../..
+          sha256sum openfang-aarch64-unknown-linux-gnu.tar.gz > openfang-aarch64-unknown-linux-gnu.tar.gz.sha256
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openfang-rpi-aarch64
+          path: |
+            openfang-aarch64-unknown-linux-gnu.tar.gz
+            openfang-aarch64-unknown-linux-gnu.tar.gz.sha256
