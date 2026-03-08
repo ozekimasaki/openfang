@@ -161,6 +161,9 @@ pub struct DriverConfig {
     pub api_key: Option<String>,
     /// Base URL override.
     pub base_url: Option<String>,
+    /// Extra HTTP headers to send with every request (e.g. custom User-Agent).
+    #[serde(default)]
+    pub extra_headers: Vec<(String, String)>,
 }
 
 /// SECURITY: Custom Debug impl redacts the API key.
@@ -170,6 +173,10 @@ impl std::fmt::Debug for DriverConfig {
             .field("provider", &self.provider)
             .field("api_key", &self.api_key.as_ref().map(|_| "<redacted>"))
             .field("base_url", &self.base_url)
+            .field(
+                "extra_headers",
+                &format!("[{} entries]", self.extra_headers.len()),
+            )
             .finish()
     }
 }

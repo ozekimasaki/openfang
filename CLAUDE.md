@@ -106,6 +106,37 @@ taskkill //PID <pid> //F
 | `/api/a2a/send` | POST | Send task to external A2A agent |
 | `/api/a2a/tasks/{id}/status` | GET | Check external A2A task status |
 
+## Raspberry Pi 400 Cross-Build (GitHub Actions)
+The project targets Raspberry Pi 400 (aarch64). Windows cannot build natively (OpenSSL/Perl issues).
+- Workflow: `.github/workflows/build-rpi.yml` (manual `workflow_dispatch`)
+- Target: `aarch64-unknown-linux-gnu`
+- Uses `cross` for cross-compilation
+- Artifact: `openfang-aarch64-unknown-linux-gnu.tar.gz`
+- To trigger: Go to GitHub Actions → "Build for Raspberry Pi (aarch64)" → Run workflow
+
+## Extra Headers Feature (for Coding Plan / DashScope)
+`config.toml` supports `[default_model.extra_headers]` to send custom HTTP headers with LLM requests.
+This is used for Alibaba Cloud Coding Plan which requires specific User-Agent headers.
+
+```toml
+[default_model]
+provider = "openai"
+model = "qwen3.5-plus"
+api_key_env = "QWEN_API_KEY"
+base_url = "https://coding-intl.dashscope.aliyuncs.com/v1"
+
+[default_model.extra_headers]
+User-Agent = "OpenClaw-Gateway/1.0"
+```
+
+### Files involved in extra_headers
+- `DriverConfig` struct: `crates/openfang-runtime/src/llm_driver.rs` — `extra_headers: Vec<(String, String)>`
+- `DefaultModelConfig`: `crates/openfang-types/src/config.rs` — `extra_headers: HashMap<String, String>`
+- `ModelConfig` (agent-level): `crates/openfang-types/src/agent.rs` — `extra_headers: HashMap<String, String>`
+- Kernel wiring: `crates/openfang-kernel/src/kernel.rs` — converts HashMap→Vec when building DriverConfig
+- Driver factory: `crates/openfang-runtime/src/drivers/mod.rs` — applies via `OpenAIDriver::with_extra_headers()`
+- OpenAI driver: `crates/openfang-runtime/src/drivers/openai.rs` — `with_extra_headers()` already existed
+
 ## Architecture Notes
 - **Don't touch `openfang-cli`** — user is actively building the interactive CLI
 - `KernelHandle` trait avoids circular deps between runtime and kernel
@@ -121,3 +152,5 @@ taskkill //PID <pid> //F
 - `AgentLoopResult` field is `.response` not `.response_text`
 - CLI command to start daemon is `start` not `daemon`
 - On Windows: use `taskkill //PID <pid> //F` (double slashes in MSYS2/Git Bash)
+- Windows cannot build the full binary (OpenSSL/Perl issue) — use GitHub Actions `build-rpi.yml` for aarch64 builds
+- Every `DriverConfig { ... }` construction site must include `extra_headers` field (currently 7 sites across kernel.rs, routes.rs, drivers/mod.rs)

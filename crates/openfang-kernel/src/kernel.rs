@@ -555,6 +555,12 @@ impl OpenFangKernel {
                 .base_url
                 .clone()
                 .or_else(|| config.provider_urls.get(&config.default_model.provider).cloned()),
+            extra_headers: config
+                .default_model
+                .extra_headers
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
         };
         // Primary driver failure is non-fatal: the dashboard should remain accessible
         // even if the LLM provider is misconfigured. Users can fix config via dashboard.
@@ -616,6 +622,7 @@ impl OpenFangKernel {
                     .base_url
                     .clone()
                     .or_else(|| config.provider_urls.get(&fb.provider).cloned()),
+                extra_headers: vec![],
             };
             match drivers::create_driver(&fb_config) {
                 Ok(d) => {
@@ -3972,6 +3979,12 @@ impl OpenFangKernel {
                 provider: agent_provider.clone(),
                 api_key,
                 base_url,
+                extra_headers: manifest
+                    .model
+                    .extra_headers
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect(),
             };
 
             drivers::create_driver(&driver_config).map_err(|e| {
@@ -3995,6 +4008,7 @@ impl OpenFangKernel {
                         .base_url
                         .clone()
                         .or_else(|| self.config.provider_urls.get(&fb.provider).cloned()),
+                    extra_headers: vec![],
                 };
                 match drivers::create_driver(&config) {
                     Ok(d) => chain.push((d, fb.model.clone())),
