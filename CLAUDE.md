@@ -145,6 +145,31 @@ User-Agent = "OpenClaw-Gateway/1.0"
 - Dashboard is Alpine.js SPA in `static/index_body.html` — new tabs need both HTML and JS data/methods
 - Config fields need: struct field + `#[serde(default)]` + Default impl entry + Serialize/Deserialize derives
 
+## Current Status (2026-03-08)
+
+### extra_headers ブランチ: `feat/extra-headers`
+- **コード変更**: 完了・コミット済み (`8428087`)
+- **プッシュ**: `origin/feat/extra-headers` にプッシュ済み
+- **main マージ**: まだ（PR未作成）
+- **ビルド検証**: Windows では OpenSSL/Perl 問題のためビルド不可。GitHub Actions `build-rpi.yml` で検証が必要
+- **Cargo.lock**: `main` に別途バージョンバンプ (0.3.25→0.3.26) + `openssl-src` 追加の変更あり（未ステージ）
+
+### 残りの手順
+1. `feat/extra-headers` を `main` にマージ（PR or 直接マージ）
+2. GitHub Actions → "Build for Raspberry Pi (aarch64)" → Run workflow（main ブランチ指定）
+3. ビルド成功後、アーティファクトをダウンロード → ラズパイにデプロイ
+4. ラズパイの `config.toml` に以下を設定:
+   ```toml
+   [default_model.extra_headers]
+   User-Agent = "OpenClaw-Gateway/1.0"
+   ```
+5. デーモン再起動して動作確認:
+   ```bash
+   curl -X POST http://127.0.0.1:4200/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{"model":"qwen3.5-plus","messages":[{"role":"user","content":"Hello"}]}'
+   ```
+
 ## Common Gotchas
 - `openfang.exe` may be locked if daemon is running — use `--lib` flag or kill daemon first
 - `PeerRegistry` is `Option<PeerRegistry>` on kernel but `Option<Arc<PeerRegistry>>` on `AppState` — wrap with `.as_ref().map(|r| Arc::new(r.clone()))`
