@@ -581,6 +581,7 @@ impl OpenFangKernel {
                         provider: provider.to_string(),
                         api_key: std::env::var(env_var).ok(),
                         base_url: config.provider_urls.get(provider).cloned(),
+                        extra_headers: vec![],
                     };
                     match drivers::create_driver(&auto_config) {
                         Ok(d) => {
@@ -2947,6 +2948,7 @@ impl OpenFangKernel {
                 system_prompt: def.agent.system_prompt.clone(),
                 api_key_env: def.agent.api_key_env.clone(),
                 base_url: def.agent.base_url.clone(),
+                extra_headers: Default::default(),
             },
             capabilities: ManifestCapabilities {
                 tools: def.tools.clone(),
