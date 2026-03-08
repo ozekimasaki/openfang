@@ -555,12 +555,6 @@ impl OpenFangKernel {
                 .base_url
                 .clone()
                 .or_else(|| config.provider_urls.get(&config.default_model.provider).cloned()),
-            extra_headers: config
-                .default_model
-                .extra_headers
-                .iter()
-                .map(|(k, v)| (k.clone(), v.clone()))
-                .collect(),
         };
         // Primary driver failure is non-fatal: the dashboard should remain accessible
         // even if the LLM provider is misconfigured. Users can fix config via dashboard.
@@ -581,7 +575,6 @@ impl OpenFangKernel {
                         provider: provider.to_string(),
                         api_key: std::env::var(env_var).ok(),
                         base_url: config.provider_urls.get(provider).cloned(),
-                        extra_headers: vec![],
                     };
                     match drivers::create_driver(&auto_config) {
                         Ok(d) => {
@@ -623,7 +616,6 @@ impl OpenFangKernel {
                     .base_url
                     .clone()
                     .or_else(|| config.provider_urls.get(&fb.provider).cloned()),
-                extra_headers: vec![],
             };
             match drivers::create_driver(&fb_config) {
                 Ok(d) => {
@@ -2948,7 +2940,6 @@ impl OpenFangKernel {
                 system_prompt: def.agent.system_prompt.clone(),
                 api_key_env: def.agent.api_key_env.clone(),
                 base_url: def.agent.base_url.clone(),
-                extra_headers: Default::default(),
             },
             capabilities: ManifestCapabilities {
                 tools: def.tools.clone(),
@@ -3981,15 +3972,6 @@ impl OpenFangKernel {
                 provider: agent_provider.clone(),
                 api_key,
                 base_url,
-                extra_headers: {
-                    let agent_headers = &manifest.model.extra_headers;
-                    let headers = if agent_headers.is_empty() {
-                        &self.config.default_model.extra_headers
-                    } else {
-                        agent_headers
-                    };
-                    headers.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
-                },
             };
 
             drivers::create_driver(&driver_config).map_err(|e| {
@@ -4013,7 +3995,6 @@ impl OpenFangKernel {
                         .base_url
                         .clone()
                         .or_else(|| self.config.provider_urls.get(&fb.provider).cloned()),
-                    extra_headers: vec![],
                 };
                 match drivers::create_driver(&config) {
                     Ok(d) => chain.push((d, fb.model.clone())),

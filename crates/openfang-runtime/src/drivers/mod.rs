@@ -286,11 +286,7 @@ pub fn create_driver(config: &DriverConfig) -> Result<Arc<dyn LlmDriver>, LlmErr
             .base_url
             .clone()
             .unwrap_or_else(|| OPENAI_BASE_URL.to_string());
-        let mut driver = openai::OpenAIDriver::new(api_key, base_url);
-        if !config.extra_headers.is_empty() {
-            driver = driver.with_extra_headers(config.extra_headers.clone());
-        }
-        return Ok(Arc::new(driver));
+        return Ok(Arc::new(openai::OpenAIDriver::new(api_key, base_url)));
     }
 
     // Claude Code CLI — subprocess-based, no API key needed
@@ -342,21 +338,16 @@ pub fn create_driver(config: &DriverConfig) -> Result<Arc<dyn LlmDriver>, LlmErr
             .clone()
             .unwrap_or_else(|| defaults.base_url.to_string());
 
-        let mut driver = openai::OpenAIDriver::new(api_key, base_url);
-        if !config.extra_headers.is_empty() {
-            driver = driver.with_extra_headers(config.extra_headers.clone());
-        }
-        return Ok(Arc::new(driver));
+        return Ok(Arc::new(openai::OpenAIDriver::new(api_key, base_url)));
     }
 
     // Unknown provider — if base_url is set, treat as custom OpenAI-compatible
     if let Some(ref base_url) = config.base_url {
         let api_key = config.api_key.clone().unwrap_or_default();
-        let mut driver = openai::OpenAIDriver::new(api_key, base_url.clone());
-        if !config.extra_headers.is_empty() {
-            driver = driver.with_extra_headers(config.extra_headers.clone());
-        }
-        return Ok(Arc::new(driver));
+        return Ok(Arc::new(openai::OpenAIDriver::new(
+            api_key,
+            base_url.clone(),
+        )));
     }
 
     Err(LlmError::Api {
@@ -476,7 +467,6 @@ mod tests {
             provider: "my-custom-llm".to_string(),
             api_key: Some("test".to_string()),
             base_url: Some("http://localhost:9999/v1".to_string()),
-            extra_headers: vec![],
         };
         let driver = create_driver(&config);
         assert!(driver.is_ok());
@@ -488,7 +478,6 @@ mod tests {
             provider: "nonexistent".to_string(),
             api_key: None,
             base_url: None,
-            extra_headers: vec![],
         };
         let driver = create_driver(&config);
         assert!(driver.is_err());

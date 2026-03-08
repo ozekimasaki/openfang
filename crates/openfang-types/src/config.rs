@@ -1352,9 +1352,6 @@ pub struct DefaultModelConfig {
     pub api_key_env: String,
     /// Optional base URL override.
     pub base_url: Option<String>,
-    /// Extra HTTP headers to send with every LLM request.
-    #[serde(default)]
-    pub extra_headers: std::collections::HashMap<String, String>,
 }
 
 impl Default for DefaultModelConfig {
@@ -1364,7 +1361,6 @@ impl Default for DefaultModelConfig {
             model: "claude-sonnet-4-20250514".to_string(),
             api_key_env: "ANTHROPIC_API_KEY".to_string(),
             base_url: None,
-            extra_headers: std::collections::HashMap::new(),
         }
     }
 }
