@@ -28,7 +28,7 @@ impl OpenAIDriver {
             client: reqwest::Client::builder()
                 .user_agent("OpenFang/1.0")
                 .build()
-                .unwrap_or_else(|| reqwest::Client::new()),
+                .unwrap_or_else(|_| reqwest::Client::new()),
             extra_headers: Vec::new(),
         }
     }
