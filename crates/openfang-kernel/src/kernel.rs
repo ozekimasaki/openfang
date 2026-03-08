@@ -3981,12 +3981,15 @@ impl OpenFangKernel {
                 provider: agent_provider.clone(),
                 api_key,
                 base_url,
-                extra_headers: manifest
-                    .model
-                    .extra_headers
-                    .iter()
-                    .map(|(k, v)| (k.clone(), v.clone()))
-                    .collect(),
+                extra_headers: {
+                    let agent_headers = &manifest.model.extra_headers;
+                    let headers = if agent_headers.is_empty() {
+                        &self.config.default_model.extra_headers
+                    } else {
+                        agent_headers
+                    };
+                    headers.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
+                },
             };
 
             drivers::create_driver(&driver_config).map_err(|e| {
